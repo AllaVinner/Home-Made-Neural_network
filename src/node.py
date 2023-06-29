@@ -24,7 +24,7 @@ class Linear:
         self.layer = Stack([LinearNode(num_inputs) for _ in range(num_outputs)])
 
     def forward(self, input):
-        return self.layer.forward(input)
+        return self.layer.forward(input)[:, 0]
 
     def backward(self, loss):
         return self.layer.backward(loss)
@@ -60,15 +60,26 @@ class Sequence:
         return input
 
     def backward(self, loss):
-        for l in self.layers:
+        for l in reversed(self.layers):
             loss = l.backward(loss)
         return loss
 
+class Sigmoid:
 
-l = Linear(2, 1)
+    def __init__(self):
+        pass
 
-l.forward(np.array([[1., 4.]]))
-l.backward(np.array([[1.]]))
+    def forward(self, input):
+        return 1./(1+np.exp(-input))
+    
+    def backward(self, loss):
+        return 1./(1+np.exp(-loss))*1./(1+np.exp(loss))
+
+
+l = Sequence([Linear(2, 4), Linear(4, 3), Linear(3, 1), Sigmoid()])
+
+l.forward(np.array([1., 4.]))
+l.backward(np.array([1.]))
 
 
 
